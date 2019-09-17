@@ -123,6 +123,8 @@ const char fingerprint[] PROGMEM = "8B 06 BB AC A6 10 6A DA 91 01 99 05 0C 21 AF
 float measured_temp;
 float measured_humi;
 float measured_pres;
+float measured_alti;
+float measured_sea;
 float SLpressure_hPa;               // needed for rel pressure calculation
 float HeatIndex;                    // Heat Index in °C
 float volt;
