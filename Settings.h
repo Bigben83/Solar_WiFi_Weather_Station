@@ -34,6 +34,12 @@ const char* api_key = "your API key";                // API write key
 /***************************************************************************/
 #define WITHDS18B20
 
+***************************************************************************/
+#define WITHBMP180
+
+/***************************************************************************/
+#define WITHBME230
+
 /****** MQTT Settings ********************************************************/
 #define WITHMQTT
 const char* mqtt_server = "192.xxx.xxx.xxx";      // MQTT Server (broker) address
