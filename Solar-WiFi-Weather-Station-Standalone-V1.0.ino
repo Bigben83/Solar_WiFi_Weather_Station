@@ -85,7 +85,6 @@
 #include "Translation.h"
 
 #include <Adafruit_Sensor.h>
-#include <Adafruit_BME280.h>
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 #include "FS.h"
@@ -106,7 +105,16 @@ WiFiClient espClient;               // MQTT
 PubSubClient mqttclient(espClient);     // MQTT
 #endif
 
+#ifdef WITHBME280
+#include <Adafruit_BME280.h>
 Adafruit_BME280 bme;             // I2C
+#endif
+
+#ifdef WITHBMP180
+#include <Adafruit_BMP085.h>
+Adafruit_BMP085 bmp;             // I2C
+#endif
+
 WiFiUDP udp;
 EasyNTPClient ntpClient(udp, NTP_SERVER, TZ_SEC + DST_SEC);
 
@@ -214,9 +222,17 @@ void setup() {
   //******** Start up the DS18B20  ******************** 
   sensors.begin();
 #endif
+  
+#ifdef WITHBMP180
+  //******** Start up the DS18B20  ******************** 
+  if (!bmp.begin()) {
+  Serial.println("Could not find a valid BMP180 sensor, check wiring!");
+  while (1) {}
+  }
+#endif
 
   //******** GETTING RELATIVE PRESSURE DATA FROM SENSOR (BME680)  ******************** 
-  
+#ifdef WITHBME280  
   bool bme_status;
   bme_status = bme.begin(0x76);  //address either 0x76 or 0x77
   if (!bme_status) {
@@ -233,6 +249,7 @@ void setup() {
                 Adafruit_BME280::FILTER_OFF   );
  
   measurementEvent();            //get all data from the different sensors
+#endif
   
   //*******************SPIFFS operations***************************************************************
 
@@ -446,8 +463,44 @@ void measurementEvent() {
 
   //Measures absolute Pressure, Temperature, Humidity, Voltage, calculate relative pressure, 
   //Dewpoint, Dewpoint Spread, Heat Index
-  
+#ifdef WITHBMP180
+  // Get temperature
+  measured_temp = bmp.readTemperature();
+  // Get humidity
+  //measured_humi = bmp.readHumidity();
+  // Get pressure
+  measured_pres = bmp.readPressure();
+  // Get Altitude
+  measured_alti = bmp.readAltitude();
+  // Get Sea Level Pressure
+  measured_sea = bmp.readSealevelPressure();
+
+  Serial.print("BMP1800 Temp: ");
+  Serial.print(measured_temp);
+  Serial.print("°C; ");
+
+  Serial.print("Humidity: ");
+  Serial.print(measured_humi);
+  Serial.print("%; ");
+#endif
+
+#ifdef WITHBME280
   bme.takeForcedMeasurement();
+  // Get temperature
+  measured_temp = bme.readTemperature();
+  // Get humidity
+  measured_humi = bme.readHumidity();
+  // Get pressure
+  measured_pres = bme.readPressure() / 100.0F;
+
+  Serial.print("BME280 Temp: ");
+  Serial.print(measured_temp);
+  Serial.print("°C; ");
+
+  Serial.print("Humidity: ");
+  Serial.print(measured_humi);
+  Serial.print("%; ");
+#endif
 
   // Get temperature
   measured_temp = bme.readTemperature();
